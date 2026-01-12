@@ -1,0 +1,29 @@
+name: DhairyaCode
+on:
+  push:
+    paths:
+      - 'debs/**' # Only run when you add a new deb file
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Tools
+        run: sudo apt-get install -y dpkg-dev
+
+      - name: Scan Packages
+        run: |
+          dpkg-scanpackages -m ./debs > Packages
+          bzip2 -k -f Packages
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add Packages Packages.bz2
+          git commit -m "Update Packages index" || exit 0
+          git push
